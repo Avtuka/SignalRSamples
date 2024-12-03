@@ -1,0 +1,6 @@
+@CommonPracticeSample_HostAddress = http://localhost:5241
+
+GET {{CommonPracticeSample_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
