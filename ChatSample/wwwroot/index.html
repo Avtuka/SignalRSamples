@@ -1,0 +1,143 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SignalR Simple Chat</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f9;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 50px auto;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+            .header h1 {
+                margin: 0;
+                font-size: 24px;
+                color: #333;
+            }
+
+        #message {
+            width: calc(100% - 110px);
+            padding: 10px;
+            margin-right: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        #sendmessage {
+            padding: 10px 20px;
+            border: none;
+            background-color: #007bff;
+            color: white;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+            #sendmessage:hover {
+                background-color: #0056b3;
+            }
+
+        ul#discussion {
+            list-style: none;
+            padding: 0;
+            margin: 20px 0 0;
+        }
+
+            ul#discussion li {
+                padding: 10px;
+                margin-bottom: 5px;
+                background-color: #f9f9f9;
+                border: 1px solid #e0e0e0;
+                border-radius: 5px;
+                word-wrap: break-word;
+            }
+
+                ul#discussion li strong {
+                    color: #007bff;
+                }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>SignalR Chat Room</h1>
+        </div>
+        <div>
+            <input type="text" id="message" placeholder="Type your message here..." />
+            <input type="button" id="sendmessage" value="Send" />
+        </div>
+        <ul id="discussion"></ul>
+    </div>
+
+    <!-- SignalR Client Library from CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/6.0.20/signalr.min.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            console.log('Document loaded and ready');
+
+            // Get user input elements
+            var messageInput = document.getElementById('message');
+            var name = prompt('Enter your name:', '');
+            console.log('User name entered:', name);
+            messageInput.focus();
+
+            // Create SignalR connection
+            var connection = new signalR.HubConnectionBuilder()
+                .withUrl('/chat')
+                .build();
+
+            // Event listener for incoming messages
+            connection.on('broadcastMessage', function (name, message) {
+                console.log('Message received:', name, message);
+
+                var liElement = document.createElement('li');
+                liElement.innerHTML = '<strong>' + name + '</strong>:&nbsp;&nbsp;' + message;
+                document.getElementById('discussion').appendChild(liElement);
+            });
+
+            // Start the connection
+            connection.start()
+                .then(function () {
+                    console.log('SignalR connection started successfully');
+
+                    // Add event listener to the send button
+                    document.getElementById('sendmessage').addEventListener('click', function (event) {
+                        if (messageInput.value.trim() === '') {
+                            console.warn('Message input is empty');
+                            return;
+                        }
+
+                        console.log('Sending message:', messageInput.value);
+                        connection.invoke('send', name, messageInput.value)
+                            .catch(err => console.error('Error while sending message:', err.toString()));
+
+                        // Clear the input and focus back
+                        messageInput.value = '';
+                        messageInput.focus();
+                        event.preventDefault();
+                    });
+                })
+                .catch(err => console.error('SignalR connection error:', err.toString()));
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,6 @@
+@GroupChatSample_HostAddress = http://localhost:5076
+
+GET {{GroupChatSample_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
